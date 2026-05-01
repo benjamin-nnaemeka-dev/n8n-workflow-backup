@@ -1,0 +1,585 @@
+{
+  "name": "Backup n8n Workflows to Drive",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Folder Name\n\nGenerate dynamic folders name, with timestamp ensures no collision.",
+        "height": 320,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "62be21a3-bb96-49bf-9cbd-f5f6c5d82e1b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26ad314d-b1a8-4685-8b1b-95923a15acbc",
+              "name": "backup_folder_name",
+              "value": "={{ \"n8n Backup \" + $now.format(\"dd-MM-yyyy h:mm a\") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        192
+      ],
+      "id": "94d00205-cfdd-4aae-9fec-337725d18cee",
+      "name": "Extract  File Name"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 23
+            }
+          ]
+        }
+      },
+      "id": "d306f9e1-eca6-4f87-bb62-abc12a33689c",
+      "name": "Workflows Backup Job",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -128,
+        192
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json.backup_folder_name }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "root",
+          "mode": "list",
+          "cachedResultName": "/ (Root folder)",
+          "cachedResultUrl": "https://drive.google.com/drive"
+        },
+        "options": {}
+      },
+      "id": "49e6146a-d6eb-4815-8f07-f74b6daf4a44",
+      "name": "Create Backup Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        320,
+        192
+      ],
+      "typeVersion": 3,
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GanOaVUui9BaubhP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {}
+      },
+      "id": "c4b7d871-9238-4f75-846d-b71b9bdb5685",
+      "name": "Get All Workflow Files",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        528,
+        192
+      ],
+      "retryOnFail": true,
+      "typeVersion": 1,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "n8nApi": {
+          "id": "bD0WCe1QF7bB9zwB",
+          "name": "n8n-local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": ".\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n## Config\n\nGo to `Settings` click on `n8n API` and create one.",
+        "height": 320,
+        "width": 208,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "ec603593-950e-4910-adc9-725b094a4c1c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "44afbf59-0bcd-4f61-8fe5-e6f93ad5bef0",
+      "name": "Repeat On Each Workflow",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        800,
+        192
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "format": true,
+          "fileName": "={{ ($json.name)+\".json\" }}"
+        }
+      },
+      "id": "cc2cf703-6c66-4e46-b4ff-1746a30da5fd",
+      "name": "Convert Raw Json to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "position": [
+        1072,
+        208
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "name": "={{ ($('Repeat On Each Workflow').item.json.name)+\".json\" }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Create Backup Folder').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "df6408e3-3594-4fdf-9501-e5f9ff173c12",
+      "name": "Upload to Drive Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        1376,
+        208
+      ],
+      "typeVersion": 3,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GanOaVUui9BaubhP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Query\nReturns all folders containing `n8n backup` and Filter the current directory just created.",
+        "height": 304,
+        "width": 416
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1008,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "82df1811-efe4-4c02-98f4-ca901356ef2d",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "n8n backup",
+        "returnAll": true,
+        "filter": {},
+        "options": {}
+      },
+      "id": "1bbac348-4fdc-45f2-9449-611f5a260845",
+      "name": "Get Folders Prefix n8n Backup",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        1072,
+        -16
+      ],
+      "typeVersion": 3,
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GanOaVUui9BaubhP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "deleteFolder",
+        "folderNoRootId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "b906505c-5bba-4630-8152-90004ab3c4bb",
+      "name": "Delete OutDated Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        1536,
+        -16
+      ],
+      "typeVersion": 3,
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GanOaVUui9BaubhP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "538fc29d-2693-4c62-9848-bdcaf8566909",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "={{ $('Create Backup Folder').item.json.id }}"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "id": "a0ce9cdc-c462-4986-94eb-d39b0b117ad8",
+      "name": "Returns the Outdated Folders",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        1280,
+        -16
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.alert_email }}",
+        "subject": "=Error in {{ $json.workflow_name }}",
+        "message": "=<!--- Use your template --->",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        640
+      ],
+      "id": "71c3467b-01a2-48bc-bc91-289cf7f79ef7",
+      "name": "Send Email Alert",
+      "webhookId": "483e66d6-94f8-476b-af90-d97bcbf8b4b4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ktRaOCMJqnV03VMM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dd7c6a2e-ba71-4d7a-bfff-fc1442081354",
+              "name": "error_message",
+              "value": "={{ $json.execution.error.node.parameters.errorMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "b6995dca-14f9-486f-a150-a8aa931f93e8",
+              "name": "execution_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "c8883db4-3870-4be7-9098-58d9f38bf359",
+              "name": "failed_node_name",
+              "value": "={{ $json.execution.error.node.name }}",
+              "type": "string"
+            },
+            {
+              "id": "0ba77696-71b1-4c92-983d-3e6a4c88586e",
+              "name": "timestamp",
+              "value": "={{ $json.execution.error.timestamp.toDateTime().format(\"dd-MM-yyyy hh:mm a\") }}",
+              "type": "string"
+            },
+            {
+              "id": "64eb50c9-6cec-4b02-9784-ac4629bd070b",
+              "name": "workflow_name",
+              "value": "={{ $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "4e1fff6b-bb29-4812-b1a4-ddd024aa7140",
+              "name": "execution_log_url",
+              "value": "={{ $json.execution.url }}",
+              "type": "string"
+            },
+            {
+              "id": "2bc53444-d73a-473a-a54f-faca1c857b9f",
+              "name": "alert_email",
+              "value": "vitaliscodespace@gmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        640
+      ],
+      "id": "21581a50-b15d-4cde-bcf3-62d99b64d6af",
+      "name": "Extract Error Details"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        640
+      ],
+      "id": "decd073a-2be6-447c-8d79-f9b9a5140436",
+      "name": "Catch All Errors in Job"
+    },
+    {
+      "parameters": {
+        "content": "## Template\n\nUse your own template",
+        "height": 288,
+        "width": 192,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "3567afdf-31fe-4fff-afa3-14a6bd569147",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Made by:\n---\n# Benjamin Chisom Nnaemeka\n### </> Android Engineer | AI & Automation Engineer\n---\n\n\n👨🏻‍💻 Currently Building the community where AI automation practitioners build their reputation, share their work, and get paid for it.\n\n---\n\n\n### Follow me to see what I build next.\n\n╰┈➤ [Send me an Email](malito:benjamin.nnaemeka.dev@gmail.com)\n╰┈➤ [Follow me on GitHub](https://github.com/benjamin-nnaemeka-dev)\n╰┈➤ [Follow me on Threads](https://www.threads.com/@benjamin.nnaemeka.dev/)\n╰┈➤ [Connect with me on Linkedin](https://www.linkedin.com/in/benjamin.nnaemeka.dev/)",
+        "height": 344,
+        "width": 520,
+        "color": 5
+      },
+      "id": "bc5c9d67-baff-4f87-b777-5e087a56bcde",
+      "name": "Sticky Note10",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        960,
+        416
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract  File Name": {
+      "main": [
+        [
+          {
+            "node": "Create Backup Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflows Backup Job": {
+      "main": [
+        [
+          {
+            "node": "Extract  File Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Backup Folder": {
+      "main": [
+        [
+          {
+            "node": "Get All Workflow Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Workflow Files": {
+      "main": [
+        [
+          {
+            "node": "Repeat On Each Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repeat On Each Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Folders Prefix n8n Backup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Convert Raw Json to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Raw Json to File": {
+      "main": [
+        [
+          {
+            "node": "Upload to Drive Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Drive Folder": {
+      "main": [
+        [
+          {
+            "node": "Repeat On Each Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Folders Prefix n8n Backup": {
+      "main": [
+        [
+          {
+            "node": "Returns the Outdated Folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Returns the Outdated Folders": {
+      "main": [
+        [
+          {
+            "node": "Delete OutDated Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Alert": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Error Details": {
+      "main": [
+        [
+          {
+            "node": "Send Email Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Catch All Errors in Job": {
+      "main": [
+        [
+          {
+            "node": "Extract Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "zT7MOB39nZyuJvIq"
+  },
+  "versionId": "3c64804a-941a-4455-97fd-32cfba22de58",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6bfe217acf6d5cec26a86700aec1cfa6f5ef5346058d541d80b74d45c506bbdd"
+  },
+  "id": "zT7MOB39nZyuJvIq",
+  "tags": []
+}
